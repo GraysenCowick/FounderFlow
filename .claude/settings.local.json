@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pnpm create:*)"
+      "Bash(pnpm create:*)",
+      "Bash(pnpm add:*)",
+      "Bash(npx:*)"
     ]
   }
 }
