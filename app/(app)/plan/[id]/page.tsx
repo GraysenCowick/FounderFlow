@@ -37,7 +37,7 @@ export default async function PlanDetailPage({ params }: { params: Promise<{ id:
             Result KPIs
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {resultKpis.map((kpi, i) => <ResultKpiCard key={i} kpi={kpi} />)}
+            {resultKpis.map((kpi, i) => <ResultKpiCard key={i} kpi={kpi} gamePlanId={id} />)}
           </div>
         </section>
       )}
@@ -48,7 +48,7 @@ export default async function PlanDetailPage({ params }: { params: Promise<{ id:
             Activity KPIs
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activityKpis.map((kpi, i) => <ActivityKpiCard key={i} kpi={kpi} />)}
+            {activityKpis.map((kpi, i) => <ActivityKpiCard key={i} kpi={kpi} gamePlanId={id} />)}
           </div>
         </section>
       )}
