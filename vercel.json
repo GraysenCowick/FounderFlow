@@ -1,0 +1,8 @@
+{
+  "crons": [
+    { "path": "/api/cron/monday-kickoff", "schedule": "0 8 * * 1" },
+    { "path": "/api/cron/midweek-pulse", "schedule": "0 12 * * 3" },
+    { "path": "/api/cron/friday-review", "schedule": "0 16 * * 5" },
+    { "path": "/api/cron/daily-nudge", "schedule": "0 9 * * *" }
+  ]
+}

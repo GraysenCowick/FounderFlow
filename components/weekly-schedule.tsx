@@ -1,0 +1,71 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+
+interface ScheduleItem {
+  day: string
+  time_block: string
+  task: string
+  duration_minutes: number
+}
+
+const ALL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+const DAY_COLORS: Record<string, string> = {
+  Monday: 'text-blue-600 border-blue-500/30 bg-blue-50',
+  Tuesday: 'text-purple-600 border-purple-500/30 bg-purple-50',
+  Wednesday: 'text-violet-600 border-violet-500/30 bg-violet-50',
+  Thursday: 'text-orange-600 border-orange-500/30 bg-orange-50',
+  Friday: 'text-rose-600 border-rose-500/30 bg-rose-50',
+  Saturday: 'text-pink-600 border-pink-500/30 bg-pink-50',
+  Sunday: 'text-slate-600 border-slate-400/30 bg-slate-50',
+}
+
+export function WeeklySchedule({ schedule }: { schedule: ScheduleItem[] }) {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
+  const todayIndex = ALL_DAYS.indexOf(today)
+  const DAY_ORDER = todayIndex === -1
+    ? ALL_DAYS
+    : [...ALL_DAYS.slice(todayIndex), ...ALL_DAYS.slice(0, todayIndex)]
+
+  const grouped = DAY_ORDER.reduce<Record<string, ScheduleItem[]>>((acc, day) => {
+    const items = schedule.filter((s) => s.day === day)
+    if (items.length > 0) acc[day] = items
+    return acc
+  }, {})
+
+  return (
+    <Card className="border-border shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-lg">Weekly Schedule</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-5">
+          {Object.entries(grouped).map(([day, items]) => (
+            <div key={day}>
+              <div className="flex items-center gap-2 mb-2.5">
+                <Badge
+                  variant="outline"
+                  className={`text-xs font-medium ${DAY_COLORS[day] || 'text-muted-foreground'} ${day === today ? 'ring-1 ring-violet-600 ring-offset-1' : ''}`}
+                >
+                  {day}
+                  {day === today && <span className="ml-1.5 font-semibold">· Today</span>}
+                </Badge>
+              </div>
+              <div className="space-y-2 ml-2">
+                {items.map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg border border-border/60">
+                    <div className="flex-shrink-0 text-xs text-muted-foreground mt-0.5 w-28">{item.time_block}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground leading-snug">{item.task}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{item.duration_minutes} min</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
