@@ -21,6 +21,20 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data
 
+    // Rate limit: max 3 plan generations per user per 24 hours
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count: recentCount } = await supabase
+      .from('questionnaires')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', since)
+    if ((recentCount ?? 0) >= 3) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. You can generate up to 3 plans per day. Please try again tomorrow.' },
+        { status: 429 }
+      )
+    }
+
     // Ensure profile exists (may have been missed during signup)
     const serviceClient = await createServiceClient()
     await serviceClient.from('profiles').upsert({

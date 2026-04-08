@@ -7,10 +7,12 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get('authorization')
   const secret = request.headers.get('x-cron-secret') ||
+    (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null) ||
     new URL(request.url).searchParams.get('secret')
 
-  if (secret !== process.env.CRON_SECRET) {
+  if (!secret || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

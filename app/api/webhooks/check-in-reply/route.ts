@@ -5,6 +5,13 @@ import { NextRequest, NextResponse } from 'next/server'
 // and call the check-in respond API.
 
 export async function POST(request: NextRequest) {
+  // Verify webhook secret before processing any payload
+  const webhookSecret = request.headers.get('x-webhook-secret') ||
+    request.headers.get('x-resend-signature')
+  if (!process.env.WEBHOOK_SECRET || webhookSecret !== process.env.WEBHOOK_SECRET) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
     console.log('Received check-in reply webhook:', JSON.stringify(body, null, 2))

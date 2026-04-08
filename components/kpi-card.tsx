@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { KpiUpdateButton } from '@/components/kpi-update-button'
+import { KpiEditButton } from '@/components/kpi-edit-button'
 
 interface ResultKpi {
   name: string
@@ -26,10 +27,12 @@ function parseNumber(val: string): number {
 export function ResultKpiCard({
   kpi,
   gamePlanId,
+  kpiIndex,
   loggedValue,
 }: {
   kpi: ResultKpi
   gamePlanId: string
+  kpiIndex: number
   loggedValue?: number | null
 }) {
   const current = loggedValue ?? parseNumber(kpi.current)
@@ -44,7 +47,16 @@ export function ResultKpiCard({
           <Badge variant="outline" className="text-xs text-violet-600 border-violet-600/30 bg-violet-600/5">
             Result KPI
           </Badge>
-          <span className="text-sm font-semibold text-violet-600">{pct}%</span>
+          <div className="flex items-center gap-2">
+            <KpiEditButton
+              gamePlanId={gamePlanId}
+              kpiIndex={kpiIndex}
+              kpiType="result"
+              initialName={kpi.name}
+              initialTarget={kpi.target}
+            />
+            <span className="text-sm font-semibold text-violet-600">{pct}%</span>
+          </div>
         </div>
         <CardTitle className="text-base font-semibold mt-1">{kpi.name}</CardTitle>
       </CardHeader>
@@ -63,18 +75,31 @@ export function ResultKpiCard({
 export function ActivityKpiCard({
   kpi,
   gamePlanId,
+  kpiIndex,
   loggedValue,
 }: {
   kpi: ActivityKpi
   gamePlanId: string
+  kpiIndex: number
   loggedValue?: number | null
 }) {
   return (
     <Card className="border-border shadow-sm">
       <CardHeader className="pb-2">
-        <Badge variant="outline" className="text-xs text-blue-600 border-blue-600/30 bg-blue-600/5 w-fit">
-          Activity KPI
-        </Badge>
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className="text-xs text-blue-600 border-blue-600/30 bg-blue-600/5">
+            Activity KPI
+          </Badge>
+          <KpiEditButton
+            gamePlanId={gamePlanId}
+            kpiIndex={kpiIndex}
+            kpiType="activity"
+            initialName={kpi.name}
+            initialTarget={kpi.target}
+            initialUnit={kpi.unit}
+            initialFrequency={kpi.frequency}
+          />
+        </div>
         <CardTitle className="text-base font-semibold mt-1">{kpi.name}</CardTitle>
       </CardHeader>
       <CardContent>

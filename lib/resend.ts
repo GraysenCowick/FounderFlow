@@ -7,6 +7,17 @@ export function getResend(): Resend {
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'FounderFlow <hello@founderflow.app>'
+
+/** Escape HTML entities to prevent injection in email HTML templates. */
+function esc(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
 
 function emailWrapper(content: string): string {
   return `<!DOCTYPE html>
@@ -57,7 +68,7 @@ export interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions) {
   return getResend().emails.send({
-    from: 'FounderFlow <hello@founderflow.app>',
+    from: FROM_EMAIL,
     to: options.to,
     subject: options.subject,
     html: options.html,
@@ -75,19 +86,19 @@ export function buildMondayKickoffEmail(data: {
     .map(
       (item) => `
     <div class="schedule-item">
-      <div class="schedule-day">${item.day}</div>
-      <div class="schedule-task">${item.task}</div>
-      <div class="schedule-time">${item.time_block} · ${item.duration_minutes} min</div>
+      <div class="schedule-day">${esc(item.day)}</div>
+      <div class="schedule-task">${esc(item.task)}</div>
+      <div class="schedule-time">${esc(item.time_block)} · ${esc(String(item.duration_minutes))} min</div>
     </div>`
     )
     .join('')
 
   const html = emailWrapper(`
     <div class="card">
-      <h1>🎯 Week ${data.weekNumber}: Here's your game plan</h1>
-      <p>Hey ${data.userName},</p>
+      <h1>🎯 Week ${esc(String(data.weekNumber))}: Here's your game plan</h1>
+      <p>Hey ${esc(data.userName)},</p>
       <p>New week, new opportunity to move the needle. Your 90-day target is still the north star:</p>
-      <p class="highlight">"${data.ninetyDayTarget}"</p>
+      <p class="highlight">"${esc(data.ninetyDayTarget)}"</p>
       <p>Here's what this week looks like:</p>
       ${scheduleItems}
       <p>This week matters. Every task on this list is a direct line to your goal. Let's get after it.</p>
@@ -109,13 +120,13 @@ export function buildMidweekPulseEmail(data: {
   checkInPageUrl: string
 }): EmailOptions {
   const kpiList = data.activityKpis
-    .map((kpi) => `<li style="color:#a1a1aa;margin-bottom:8px;"><span style="color:#fafafa;font-weight:600;">${kpi.name}</span> — Target: <span class="highlight">${kpi.target} ${kpi.unit} ${kpi.frequency}</span></li>`)
+    .map((kpi) => `<li style="color:#a1a1aa;margin-bottom:8px;"><span style="color:#fafafa;font-weight:600;">${esc(kpi.name)}</span> — Target: <span class="highlight">${esc(kpi.target)} ${esc(kpi.unit)} ${esc(kpi.frequency)}</span></li>`)
     .join('')
 
   const html = emailWrapper(`
     <div class="card">
       <h1>📊 Midweek check — how's it going?</h1>
-      <p>Hey ${data.userName},</p>
+      <p>Hey ${esc(data.userName)},</p>
       <p>It's Wednesday. The week is half over. Let's do a quick pulse check on your activity KPIs:</p>
       <ul style="padding-left:20px;margin:16px 0;">
         ${kpiList}
@@ -139,14 +150,14 @@ export function buildFridayReviewEmail(data: {
   checkInPageUrl: string
 }): EmailOptions {
   const kpiList = data.resultKpis
-    .map((kpi) => `<li style="color:#a1a1aa;margin-bottom:8px;"><span style="color:#fafafa;font-weight:600;">${kpi.name}</span> — Target: <span class="highlight">${kpi.target}</span></li>`)
+    .map((kpi) => `<li style="color:#a1a1aa;margin-bottom:8px;"><span style="color:#fafafa;font-weight:600;">${esc(kpi.name)}</span> — Target: <span class="highlight">${esc(kpi.target)}</span></li>`)
     .join('')
 
   const html = emailWrapper(`
     <div class="card">
-      <h1>🏁 Week ${data.weekNumber} wrap-up</h1>
-      <p>Hey ${data.userName},</p>
-      <p>Week ${data.weekNumber} is done. Time for your Friday Review — a non-negotiable habit of high-performers.</p>
+      <h1>🏁 Week ${esc(String(data.weekNumber))} wrap-up</h1>
+      <p>Hey ${esc(data.userName)},</p>
+      <p>Week ${esc(String(data.weekNumber))} is done. Time for your Friday Review — a non-negotiable habit of high-performers.</p>
       <p><strong style="color:#fafafa;">Log your numbers for the week:</strong></p>
       <ul style="padding-left:20px;margin:16px 0;">
         ${kpiList}
@@ -171,15 +182,15 @@ export function buildDailyNudgeEmail(data: {
   const taskContent = data.todayTask
     ? `<div class="schedule-item">
         <div class="schedule-day">Today's Task</div>
-        <div class="schedule-task">${data.todayTask.task}</div>
-        <div class="schedule-time">${data.todayTask.time_block} · ${data.todayTask.duration_minutes} min</div>
+        <div class="schedule-task">${esc(data.todayTask.task)}</div>
+        <div class="schedule-time">${esc(data.todayTask.time_block)} · ${esc(String(data.todayTask.duration_minutes))} min</div>
       </div>`
     : `<p>No specific task scheduled for today — use this time for a weekly review or deep work on your goal.</p>`
 
   const html = emailWrapper(`
     <div class="card">
       <h1>✅ Did you hit today's task?</h1>
-      <p>Hey ${data.userName},</p>
+      <p>Hey ${esc(data.userName)},</p>
       <p>Quick check-in. Here's what's on your plate today:</p>
       ${taskContent}
       <p>Did you get it done? Log your progress and keep the streak alive.</p>

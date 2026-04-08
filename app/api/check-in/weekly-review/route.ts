@@ -22,6 +22,21 @@ export async function POST(request: NextRequest) {
 
     const { game_plan_id, accomplishments, blockers, next_focus } = parsed.data
 
+    // Rate limit: max 5 weekly reviews per user per 24 hours
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count: reviewCount } = await supabase
+      .from('check_ins')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('type', 'weekly_review')
+      .gte('sent_at', since)
+    if ((reviewCount ?? 0) >= 5) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     // Fetch the game plan for context
     const { data: plan } = await supabase
       .from('game_plans')

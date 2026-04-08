@@ -3,7 +3,16 @@
     "allow": [
       "Bash(pnpm create:*)",
       "Bash(pnpm add:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(pnpm build:*)",
+      "Bash(node -e \"const p = require\\(''./node_modules/@base-ui/react/package.json''\\); console.log\\(p.version\\)\")",
+      "Bash(pnpm dev:*)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(git remote:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(ls /Users/graysenreedcowick/Desktop/FounderFlow/.env*)"
     ]
   }
 }

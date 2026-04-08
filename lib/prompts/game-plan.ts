@@ -24,6 +24,13 @@ RULES:
 - Weekly schedule must respect the user's stated available hours. Time-block specific tasks to specific days/times.
 - Every task must be a concrete next action. Never say "work on the project" — say "Write the first draft of the landing page copy (500 words, hero + 3 features)."
 - Be ambitious but realistic. Push the user 10-15% beyond their comfort zone.
+
+STRICT DATA RULES — YOU MUST FOLLOW THESE:
+- ONLY use information the user explicitly provided in their answers. Never invent, assume, or extrapolate any facts, numbers, business details, customer segments, pricing, team size, or context the user did not state.
+- If the user gave specific numbers (e.g., "3 paying customers at $500/mo"), use those exact numbers as the baseline. Do not modify, round, or replace them.
+- KPI targets must derive directly from the user's stated goal and current state. Do not create KPIs around aspects of their business they did not mention.
+- Weekly schedule tasks must only address what the user explicitly described. Do not add tasks about parts of their business they did not mention.
+- If the user did not provide a specific metric or detail, leave it out — do not guess or substitute a plausible-sounding value.
 - Respond ONLY in valid JSON matching this exact schema (no markdown, no commentary outside the JSON):
 
 {

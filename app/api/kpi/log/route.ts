@@ -21,6 +21,20 @@ export async function POST(request: NextRequest) {
 
     const { game_plan_id, kpi_name, kpi_type, value } = parsed.data
 
+    // Rate limit: max 100 KPI logs per user per 24 hours
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count: logCount } = await supabase
+      .from('kpi_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('logged_at', since)
+    if ((logCount ?? 0) >= 100) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Max 100 KPI logs per day.' },
+        { status: 429 }
+      )
+    }
+
     // Verify the game plan belongs to this user
     const { data: plan } = await supabase
       .from('game_plans')

@@ -82,6 +82,7 @@ export default async function DashboardPage() {
                 key={i}
                 kpi={kpi}
                 gamePlanId={gamePlan.id}
+                kpiIndex={i}
                 loggedValue={latestByKpi[kpi.name] ?? null}
               />
             ))}
@@ -101,6 +102,7 @@ export default async function DashboardPage() {
                 key={i}
                 kpi={kpi}
                 gamePlanId={gamePlan.id}
+                kpiIndex={i}
                 loggedValue={latestByKpi[kpi.name] ?? null}
               />
             ))}
