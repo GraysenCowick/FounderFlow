@@ -33,7 +33,10 @@ export function TodayFocus({ schedule }: { schedule: ScheduleItem[] }) {
   const toggle = (index: number) => {
     setChecked((prev) => {
       const next = { ...prev, [index]: !prev[index] }
-      try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {}
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next))
+        window.dispatchEvent(new CustomEvent('todayFocusUpdated', { detail: next }))
+      } catch {}
       return next
     })
   }

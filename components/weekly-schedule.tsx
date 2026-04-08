@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -20,6 +23,19 @@ const DAY_COLORS: Record<string, string> = {
   Sunday: 'text-slate-600 border-slate-400/30 bg-slate-50',
 }
 
+function getTodayStorageKey() {
+  return `todayFocus-${new Date().toISOString().slice(0, 10)}`
+}
+
+function readChecked(): Record<number, boolean> {
+  try {
+    const stored = localStorage.getItem(getTodayStorageKey())
+    return stored ? JSON.parse(stored) : {}
+  } catch {
+    return {}
+  }
+}
+
 export function WeeklySchedule({ schedule }: { schedule: ScheduleItem[] }) {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
   const todayIndex = ALL_DAYS.indexOf(today)
@@ -32,6 +48,21 @@ export function WeeklySchedule({ schedule }: { schedule: ScheduleItem[] }) {
     if (items.length > 0) acc[day] = items
     return acc
   }, {})
+
+  // todayItems in the same order TodayFocus uses, so indices match
+  const todayItems = schedule.filter((s) => s.day === today)
+
+  const [checked, setChecked] = useState<Record<number, boolean>>({})
+
+  useEffect(() => {
+    setChecked(readChecked())
+
+    const handler = (e: Event) => {
+      setChecked((e as CustomEvent<Record<number, boolean>>).detail)
+    }
+    window.addEventListener('todayFocusUpdated', handler)
+    return () => window.removeEventListener('todayFocusUpdated', handler)
+  }, [])
 
   return (
     <Card className="border-border shadow-sm">
@@ -52,15 +83,35 @@ export function WeeklySchedule({ schedule }: { schedule: ScheduleItem[] }) {
                 </Badge>
               </div>
               <div className="space-y-2 ml-2">
-                {items.map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg border border-border/60">
-                    <div className="flex-shrink-0 text-xs text-muted-foreground mt-0.5 w-28">{item.time_block}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground leading-snug">{item.task}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.duration_minutes} min</p>
+                {items.map((item, i) => {
+                  const todayIdx = day === today ? todayItems.findIndex((t) => t.task === item.task && t.time_block === item.time_block) : -1
+                  const isDone = todayIdx !== -1 && checked[todayIdx]
+                  return (
+                    <div
+                      key={i}
+                      className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                        isDone
+                          ? 'bg-muted/20 border-border/40 opacity-60'
+                          : 'bg-muted/40 border-border/60'
+                      }`}
+                    >
+                      <div className="flex-shrink-0 text-xs text-muted-foreground mt-0.5 w-28">{item.time_block}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm leading-snug transition-colors ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                          {item.task}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{item.duration_minutes} min</p>
+                      </div>
+                      {isDone && (
+                        <div className="flex-shrink-0 mt-0.5">
+                          <svg viewBox="0 0 12 12" fill="none" className="w-3.5 h-3.5 text-violet-600">
+                            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           ))}
