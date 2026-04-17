@@ -72,10 +72,11 @@ export function OnboardingForm() {
   const onSubmit = async (data: QuestionnaireFormData) => {
     setGenerating(true)
     try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       const res = await fetch('/api/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, timezone }),
       })
       if (!res.ok) {
         const err = await res.json()

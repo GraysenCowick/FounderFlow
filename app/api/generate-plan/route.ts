@@ -3,6 +3,22 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { generateGamePlan } from '@/lib/anthropic'
 import { questionnaireSchema } from '@/lib/validators/questionnaire'
 
+function getTomorrowInTimezone(timezone: string): string {
+  try {
+    // Get today's date in the user's timezone using en-CA (YYYY-MM-DD format)
+    const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(new Date())
+    const [y, m, d] = todayStr.split('-').map(Number)
+    // Compute tomorrow using UTC arithmetic to avoid server timezone interference
+    const tomorrow = new Date(Date.UTC(y, m - 1, d + 1))
+    return tomorrow.toISOString().slice(0, 10)
+  } catch {
+    // Fallback to UTC if timezone string is invalid
+    const tomorrow = new Date()
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
+    return tomorrow.toISOString().slice(0, 10)
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -13,6 +29,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+
+    // Extract timezone before questionnaire validation (Zod strips unknown keys)
+    const timezone = typeof body?.timezone === 'string' ? body.timezone : 'UTC'
+    const startDate = getTomorrowInTimezone(timezone)
+
     const parsed = questionnaireSchema.safeParse(body)
 
     if (!parsed.success) {
@@ -65,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate game plan via Claude
-    const { parsed: gamePlan, raw } = await generateGamePlan(data)
+    const { parsed: gamePlan, raw } = await generateGamePlan(data, startDate)
 
     // Save game plan
     const { data: savedPlan, error: planError } = await supabase
@@ -80,6 +101,7 @@ export async function POST(request: NextRequest) {
         weekly_schedule: gamePlan.weekly_schedule,
         raw_ai_response: raw,
         status: 'active',
+        start_date: startDate,
       })
       .select()
       .single()

@@ -23,6 +23,15 @@ const DAY_COLORS: Record<string, string> = {
   Sunday: 'text-slate-600 border-slate-400/30 bg-slate-50',
 }
 
+function parseDateLocal(dateStr: string): Date {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function formatShortDate(d: Date): string {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 function getTodayStorageKey() {
   return `todayFocus-${new Date().toISOString().slice(0, 10)}`
 }
@@ -36,7 +45,13 @@ function readChecked(): Record<number, boolean> {
   }
 }
 
-export function WeeklySchedule({ schedule }: { schedule: ScheduleItem[] }) {
+export function WeeklySchedule({
+  schedule,
+  startDate,
+}: {
+  schedule: ScheduleItem[]
+  startDate?: string
+}) {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
   const todayIndex = ALL_DAYS.indexOf(today)
   const DAY_ORDER = todayIndex === -1
@@ -64,10 +79,38 @@ export function WeeklySchedule({ schedule }: { schedule: ScheduleItem[] }) {
     return () => window.removeEventListener('todayFocusUpdated', handler)
   }, [])
 
+  // Compute actual calendar date for each day of the week starting from today
+  const todayDateOnly = new Date()
+  todayDateOnly.setHours(0, 0, 0, 0)
+  const DAY_DATES: Record<string, Date> = {}
+  ALL_DAYS.forEach((day, i) => {
+    const offset = todayIndex === -1 ? i : (i - todayIndex + 7) % 7
+    const d = new Date(todayDateOnly)
+    d.setDate(d.getDate() + offset)
+    DAY_DATES[day] = d
+  })
+
+  // Compute current week number and date range from startDate
+  let weekLabel: string | null = null
+  if (startDate) {
+    const startDateObj = parseDateLocal(startDate)
+    const msSinceStart = todayDateOnly.getTime() - startDateObj.getTime()
+    const daysSinceStart = Math.floor(msSinceStart / (24 * 60 * 60 * 1000))
+    const weekNum = Math.min(13, Math.max(1, Math.floor(daysSinceStart / 7) + 1))
+    const weekStart = new Date(startDateObj)
+    weekStart.setDate(startDateObj.getDate() + (weekNum - 1) * 7)
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekStart.getDate() + 6)
+    weekLabel = `Week ${weekNum} of 13 · ${formatShortDate(weekStart)} – ${formatShortDate(weekEnd)}`
+  }
+
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg">Weekly Schedule</CardTitle>
+        {weekLabel && (
+          <p className="text-xs text-muted-foreground mt-0.5">{weekLabel}</p>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-5">
@@ -80,6 +123,9 @@ export function WeeklySchedule({ schedule }: { schedule: ScheduleItem[] }) {
                 >
                   {day}
                   {day === today && <span className="ml-1.5 font-semibold">· Today</span>}
+                  {DAY_DATES[day] && (
+                    <span className="ml-1.5 font-normal opacity-70">· {formatShortDate(DAY_DATES[day])}</span>
+                  )}
                 </Badge>
               </div>
               <div className="space-y-2 ml-2">

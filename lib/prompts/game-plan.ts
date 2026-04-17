@@ -8,7 +8,7 @@ export interface QuestionnaireData {
   additional_context?: string | null
 }
 
-export function buildGamePlanPrompt(questionnaire: QuestionnaireData) {
+export function buildGamePlanPrompt(questionnaire: QuestionnaireData, startDate: string) {
   const systemPrompt = `You are FounderFlow, an AI goal coach for entrepreneurs. You think using proven productivity principles:
 
 1. **Principle-centered goal setting**: Begin with the end in mind. Define the concrete outcome before planning the path. Focus on what matters most.
@@ -48,6 +48,8 @@ STRICT DATA RULES — YOU MUST FOLLOW THESE:
 }`
 
   const userPrompt = `Here are my questionnaire answers. Please generate my 90-day game plan.
+
+**Plan Start Date:** ${startDate} — Week 1 Day 1 begins on this date. Anchor any date-specific guidance to this start date.
 
 **Business Description:** ${questionnaire.business_description}
 

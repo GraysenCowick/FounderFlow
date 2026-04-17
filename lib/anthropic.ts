@@ -20,11 +20,11 @@ export interface GamePlanResult {
   }>
 }
 
-export async function generateGamePlan(questionnaire: QuestionnaireData): Promise<{
+export async function generateGamePlan(questionnaire: QuestionnaireData, startDate: string): Promise<{
   parsed: GamePlanResult
   raw: string
 }> {
-  const { systemPrompt, userPrompt } = buildGamePlanPrompt(questionnaire)
+  const { systemPrompt, userPrompt } = buildGamePlanPrompt(questionnaire, startDate)
 
   async function callClaude(): Promise<string> {
     const message = await getClient().messages.create({

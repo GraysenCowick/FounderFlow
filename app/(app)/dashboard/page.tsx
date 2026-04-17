@@ -112,7 +112,7 @@ export default async function DashboardPage() {
 
       {/* Weekly Schedule */}
       {weeklySchedule.length > 0 && (
-        <WeeklySchedule schedule={weeklySchedule} />
+        <WeeklySchedule schedule={weeklySchedule} startDate={gamePlan.start_date ?? undefined} />
       )}
     </div>
   )
