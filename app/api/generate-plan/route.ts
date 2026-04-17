@@ -42,16 +42,16 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data
 
-    // Rate limit: max 3 plan generations per user per 24 hours
+    // Rate limit: max 10 successful plan generations per user per 24 hours
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
     const { count: recentCount } = await supabase
-      .from('questionnaires')
+      .from('game_plans')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .gte('created_at', since)
-    if ((recentCount ?? 0) >= 3) {
+    if ((recentCount ?? 0) >= 10) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded. You can generate up to 3 plans per day. Please try again tomorrow.' },
+        { error: 'Rate limit exceeded. You can generate up to 10 plans per day. Please try again tomorrow.' },
         { status: 429 }
       )
     }
@@ -64,7 +64,11 @@ export async function POST(request: NextRequest) {
       email: user.email ?? '',
     }, { onConflict: 'id', ignoreDuplicates: true })
 
-    // Save questionnaire
+    // Generate game plan via Claude BEFORE saving anything — so failed attempts
+    // don't count against the rate limit
+    const { parsed: gamePlan, raw } = await generateGamePlan(data, startDate)
+
+    // Save questionnaire (only on success)
     const { data: questionnaire, error: qError } = await supabase
       .from('questionnaires')
       .insert({
@@ -84,9 +88,6 @@ export async function POST(request: NextRequest) {
       console.error('Questionnaire insert error:', qError)
       return NextResponse.json({ error: 'Failed to save questionnaire' }, { status: 500 })
     }
-
-    // Generate game plan via Claude
-    const { parsed: gamePlan, raw } = await generateGamePlan(data, startDate)
 
     // Save game plan
     const { data: savedPlan, error: planError } = await supabase
