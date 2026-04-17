@@ -28,7 +28,7 @@ export async function generateGamePlan(questionnaire: QuestionnaireData, startDa
 
   async function callClaude(): Promise<string> {
     const message = await getClient().messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
@@ -96,7 +96,7 @@ ${context.nextFocus}
 Give me your coaching response.`
 
   const message = await getClient().messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 512,
     system,
     messages: [{ role: 'user', content: userPrompt }],
